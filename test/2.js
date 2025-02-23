@@ -1,40 +1,63 @@
+/**
+ * @param {string} word1
+ * @param {string} word2
+ * @return {number}
+ */
+/**
+ * @param {string} s1
+ * @param {string} s2
+ * @return {number}
+ */
+var numDistinct = function (word1, word2) {
 
-function heapSort(arr) {
+    const m = word1.length;
+    const n = word2.length
 
-    let len = arr.length;
-    // 4 - 0 -1 -2 - 3
+    word1 = ['0', ...word1]
+    word2 = ['0', ...word2]
 
-    for (let i = Math.floor((len - 1) / 2) - 1); i >= 0; i--) {
-        heapify(arr, len, i)
+
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0))
+
+
+    // console.log(dp)
+
+    // 初始化
+    for (let i = 0; i <= m; i++) {
+        dp[i][0] = 1
+    }
+    for (let i = 1; i <= n; i++) {
+        dp[0][i] = 0
     }
 
+    // console.log(dp)
 
-    for (let i = len - 1; i >= 0; i--) {
-        [arr[0], arr[i]] = [arr[i], arr[0]]
-        heapify(arr, i - 1, 0)
+    // dp推导公式
+    // word1[i] === word2[j] ------> dp[i][j] = dp[i-1][j-1]  
+    // word1[i] != word2[j] ---------->  d[i][j] ----------> d[k][j] &&  word1[k] ==== word2[j]
+    // -------------
+    console.log(dp);
+
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+
+            if (i < j) {
+                dp[i][j] = 0
+            } else if (word1[i] === word2[j]) {
+                console.log(word1[i], word2[j])
+                dp[i][j] = dp[i - 1][j - 1] + dp[i - 1][j]
+            } else {
+                dp[i][j] = dp[i - 1][j]
+            }
+        }
     }
 
-    return arr
-}
+    //console.log(dp)
+
+    return dp[m][n]
+};
 
 
-function heapify(arr, n, i) {
-
-    let max = i
-    let left = 2 * i + 1
-    let right = 2 * i + 2
-
-    if (left < n && arr[max] <= arr[left]) {
-        max = left;
-    }
-
-    if (right < n && arr[max] <= arr[right]) {
-        max = right
-    }
-
-    if (max !== i) {
-        [arr[max], arr[i]] = [arr[i], arr[max]]
-        heapify(arr, n, max)
-    }
-
-}
+console.log(
+    numDistinct('rabbbit', 'rabbit')
+)

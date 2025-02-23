@@ -1,3 +1,5 @@
+// 该场景是最大价值
+
 const weight = [1, 3, 4]
 const price = [15, 20, 30]
 

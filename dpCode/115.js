@@ -22,13 +22,11 @@ var numDistinct  = function (word1, word2) {
 
     // console.log(dp)
 
-    let total = 0
+    // 初始化
     for (let i = 0; i <= m; i++) {
         dp[i][0] = 1
     }
-    total = 0
     for (let i = 1; i <= n; i++) {
-        total = word2[i].charCodeAt(0) + total
         dp[0][i] = 0
     }
 

@@ -15,7 +15,6 @@ var wordBreak = function (s, wordDict) {
     s = '_' + s
 
 
-
     dp[0] = true
 
 
