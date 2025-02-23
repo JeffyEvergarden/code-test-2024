@@ -1,55 +1,64 @@
-/**
- * @param {number[]} nums
- * @param {number} target
- * @return {number}
- */
-var findMaxForm = function (strs, m, n) {
+// 该场景是最大价值
 
-  const value = strs.map((str) => {
-    let a = 0;
-    let b = 0;
-    [...str].forEach((_char) => { _char === '0' && a++; _char === '1' && b++; })
-    return {
-      a, b
-    }
-  })
+const weight = [1, 3, 4]
+const price = [15, 20, 30]
 
-  const len = strs.length
+// 01 背包， 0-i种物品(每个物品只有1个)，放的背包容量为k的里最大价值
+// 二维
+function package01(weight, price, maxWeight) {
+  const len = weight.length;
+  const dp = Array.from({ length: len }, () => new Array(maxWeight + 1).fill(0))
 
-  // dp[k][i][j] 0~k个物品上限 物品为i，j最大子集个数
-
-  const dp = new Array(len).fill(0).map(() => new Array(m + 1).fill(0).map(() => new Array(n + 1).fill(0)))
-
-  for (let i = value[0].a; i <= m; i++) {
-    for (let j = value[0].b; j <= n; j++) {
-      dp[0][i][j] = 1
-    }
+  // 初始化
+  for (let i = 0; i < len; i++) {
+    dp[i][0] = 0
+  }
+  for (let i = 0; i <= maxWeight; i++) {
+    dp[0][i] = weight[0] <= maxWeight ? price[0] : 0
   }
 
-  // dp[k][i][j] 0~k个物品上限 物品为i，j最大子集个数
-  // dp[k][i][j] = 放 dp[k][i-value[k].x][i-value[k].y] + 1
-  // dp[k][i][j] = 不放 dp[k-1][i][j]
+  // dp[i][j] = 放。 dp[i][j-weight[i]] + price[i]
+  //          = 不放。dp[i-1][j]
 
-  // console.log(dp)
-
-  for (let k = 1; k < value.length; k++) { // 数组
-    for (let i = 0; i <= m; i++) {
-      for (let j = 0; j <= n; j++) {
-        if (i - value[k].a >= 0 && j - value[k].b >= 0) {
-          dp[k][i][j] = Math.max(dp[k - 1][i - value[k].a][j - value[k].b] + 1,
-            dp[k - 1][i][j])
-        } else {
-          // 放不下
-          dp[k][i][j] = dp[k - 1][i][j]
-        }
+  for (let i = 1; i < len; i++) {
+    for (let j = 1; j <= maxWeight; j++) {
+      if (j - weight[i] >= 0) {
+        dp[i][j] = Math.max(dp[i][j - weight[i]] + price[i], dp[i - 1][j])
+      } else {
+        dp[i][j] = dp[i - 1][j]
       }
     }
-    // console.log(dp[k]);
   }
-  return dp[len - 1][m][n]
 
-};
-// console.log(
-//   findMaxForm(["10", "0001", "111001", "1", "0"], 3, 4)
-// )
-// "111001" , '0' ---> 3,4
+  return dp[len - 1][maxWeight]
+}
+console.log(
+  package01(weight, price, 3)
+)
+
+
+
+function package01(weight, price, maxWeight) {
+  const len = weight.length;
+  const dp = Array.from({ length: maxWeight + 1 }, () => 0)
+
+  // 初始化
+  for (let i = 0; i <= maxWeight; i++) {
+    dp[i] = weight[0] <= maxWeight ? price[0] : 0
+  }
+
+  // dp[j] = 放。 dp[j-weight[i]] + price[i]
+  //          = 不放。[j]
+
+  for (let i = 1; i < len; i++) {
+    for (let j = maxWeight; j >= 0; j--) {
+      if (j - weight[i] >= 0) {
+        dp[j] = Math.max(dp[j - weight[i]] + price[i], d[j])
+      } else {
+        dp[j] = dp[j]
+      }
+    }
+  }
+
+  return dp[len - 1][maxWeight]
+}

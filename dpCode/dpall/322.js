@@ -9,12 +9,11 @@ var coinChange = function (coins, amount) {
   // dp[j]最少物品
   // math.min(dp[i-coins[j]] +1, dp[i])
 
-  const dp = new Array(amount + 1).fill(0)
+  const dp = new Array(amount + 1).fill(Infinity)
 
   dp[0] = 0
 
   for (let i = 1; i <= amount; i++) {
-    dp[i] = Infinity
     for (let j = 0; j <= coins.length; j++) {
       if (i >= coins[j]) {
         dp[i] = Math.min(dp[i - coins[j]] + 1, dp[i])

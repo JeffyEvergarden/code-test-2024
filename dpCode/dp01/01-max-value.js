@@ -23,7 +23,7 @@ function package01(weight, price, maxWeight) {
   for (let i = 1; i < len; i++) {
     for (let j = 1; j <= maxWeight; j++) {
       if (j - weight[i] >= 0) {
-        dp[i][j] = Math.max(dp[i][j - weight[i]] + price[i], dp[i - 1][j])
+        dp[i][j] = Math.max(dp[i - 1][j - weight[i]] + price[i], dp[i - 1][j])
       } else {
         dp[i][j] = dp[i - 1][j]
       }
