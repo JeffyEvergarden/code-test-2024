@@ -18,7 +18,7 @@ Function.prototype._call = function (content) {
   }
 
 
-  Function.prototype._bind = function (content, args) {
+  Function.prototype._bind = function (content, ...args) {
     const ob = content || globalThis
     let fn = this;
     

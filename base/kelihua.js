@@ -32,20 +32,14 @@ function keli(nums) {
 
     let total = 0
     const dispath = (i) => {
-
-
         return (val) => {
             total = total + val
-
             if (i == len - 1) {
                 return total
             }
-
             return dispath(i + 1)
         }
-
     }
-
     return dispath(0)
 }
 

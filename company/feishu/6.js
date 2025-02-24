@@ -1,13 +1,14 @@
-// 
-var result = [];
-var a = 3;
-var total = 0;
+
+//  写出输出顺序
+
+let result = [];
+let a = 3;
+let total = 0;
 function foo(a) {
-  var i = 0;
-  for (; i < 3; i++) {
+  for (let i = 0; i < 3; i++) {
     result[i] = function () {
       total += i * a;
-      console.log(total);
+      console.log(i);
     }
   }
 }
