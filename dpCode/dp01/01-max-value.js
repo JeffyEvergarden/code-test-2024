@@ -14,7 +14,7 @@ function package01(weight, price, maxWeight) {
     dp[i][0] = 0
   }
   for (let i = 0; i <= maxWeight; i++) {
-    dp[0][i] = weight[0] <= maxWeight ? price[0] : 0
+    dp[0][i] = weight[0] <= i ? price[0] : 0
   }
 
   // dp[i][j] = 放。 dp[i][j-weight[i]] + price[i]
@@ -42,7 +42,7 @@ function package01(weight, price, maxWeight) {
 
   // 初始化
   for (let i = 0; i <= maxWeight; i++) {
-    dp[i] = weight[0] <= maxWeight ? price[0] : 0
+    dp[i] = weight[0] <= i ? price[0] : 0
   }
 
   // dp[j] = 放。 dp[j-weight[i]] + price[i]

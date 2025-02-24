@@ -14,7 +14,7 @@ function package01(weight, price, maxWeight) {
     dp[i][0] = 0
   }
   for (let i = 0; i <= maxWeight; i++) {
-    dp[0][i] = weight[0] <= maxWeight ? price[0] : 0
+    dp[0][i] = weight[0] <= i ? price[0] : 0
   }
 
   // dp[i][j] = 放。 dp[i][j-weight[i]] + price[i]
@@ -23,7 +23,7 @@ function package01(weight, price, maxWeight) {
   for (let i = 1; i < len; i++) {
     for (let j = 1; j <= maxWeight; j++) {
       if (j - weight[i] >= 0) {
-        dp[i][j] = Math.max(dp[i][j - weight[i]] + price[i], dp[i - 1][j])
+        dp[i][j] = Math.max(dp[i - 1][j - weight[i]] + price[i], dp[i - 1][j])
       } else {
         dp[i][j] = dp[i - 1][j]
       }
@@ -36,15 +36,13 @@ console.log(
   package01(weight, price, 3)
 )
 
-
-
 function package01(weight, price, maxWeight) {
   const len = weight.length;
   const dp = Array.from({ length: maxWeight + 1 }, () => 0)
 
   // 初始化
   for (let i = 0; i <= maxWeight; i++) {
-    dp[i] = weight[0] <= maxWeight ? price[0] : 0
+    dp[i] = weight[0] <= i ? price[0] : 0
   }
 
   // dp[j] = 放。 dp[j-weight[i]] + price[i]

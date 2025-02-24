@@ -1,3 +1,12 @@
+const fs = require('fs')
+
+fs.readFile('', (err, result) => {
+    console.log(result);
+})
+
+const readFile = promisify(fs.readFile)
+
+
 function promisify(fn) {
     return function (...args) {
         return new Promise((resolve, reject) => {
