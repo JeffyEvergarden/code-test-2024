@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        margin: 0;
+      }
+      #container {
+        width: 600px;
+        height: 300px;
+        overflow: hidden;
+        border: 1px solid black;
+        position: relative;
+      }
+
+      #ball {
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-size: 2em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="container">
+      <button id="button" onclick="test()">输出value</button>
+
+      <input id="myInput" />
+    </div>
+    <script type="text/javascript">
+      const dom = document.getElementById('myInput')
+
+      // 定义一个函数来处理输入框的值变化
+      function test() {
+        console.log(x.value)
+      }
+
+      // 更新输入框的值
+      const patch = () => {
+        dom.value = x.value
+      }
+
+      // 创建一个代理对象
+      const x = new Proxy(
+        { value: '' },
+        {
+          get(target, key, receiver) {
+            return Reflect.get(target, key, receiver)
+          },
+          set(target, key, val, receiver) {
+            setTimeout(() => {
+              patch()
+            }, 100)
+            return Reflect.set(target, key, val, receiver)
+          }
+        }
+      )
+
+      // 监听输入框的变化事件
+      dom.addEventListener('input', (e) => {
+        console.log(e.target.value)
+        x.value = e.target.value
+      })
+    </script>
+  </body>
+</html>
