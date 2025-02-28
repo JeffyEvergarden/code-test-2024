@@ -1,28 +1,48 @@
-function getCoinsWay(coins, n) {
+// 实现一个柯里化函数 sum() ，满足以下条件
 
-    const dp = new Array(n + 1).fill(0)
+// 题目描述
+// sum(2,3,4)=9​
+// sum(2)(3,4)=9​
+// sum(2)(3)(4)=9​
+// sum(2,3)(4)=9
 
-    dp[0] = 1
 
-    for (let i = 0; i < coins.length; i++) {
-
-        const val = coins[i]
-
-        for (let j = 1; j <= n; j++) {
-            if (j - val >= 0) {
-                dp[j] = dp[j] + dp[j - val]
-            }
-        }
-
+function sum(...args) {
+    let arr = []
+    const max = 3
+    if (arr.length >= max) {
+        return arr.reduce((a, b) => a + b, 0)
     }
 
-    return dp[n]
+    const _sum = (...args2) => {
+        arr = arr.concat(...args2)
+        if (arr.length >= max) {
+            return arr.reduce((a, b) => a + b, 0)
+        } else {
+            return _sum
+        }
+    }
+
+    return _sum
 }
 
-console.log(
-    getCoinsWay([1, 2, 5, 10], 5)
-)
-// 1、1、1、1、1
-// 1、1、1、2
-// 1、2、2
-// 5
+function sum(...args) {
+    let arr = [...args]
+
+    const _sum = (...args2) => {
+        arr = arr.concat(...args2)
+        return _sum
+    }
+
+    _sum.valueOf = () => {
+        return arr.reduce((a, b) => a + b, 0)
+    }
+
+    _sum.toString = () => {
+        return arr.reduce((a, b) => a + b, 0)
+    }
+
+    return _sum
+}
+
+console.log(+sum(1)(2, 3))
