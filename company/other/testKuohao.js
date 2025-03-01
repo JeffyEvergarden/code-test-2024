@@ -1,30 +1,29 @@
+const map = new Map([['(', 1], ['[', 2], ['{', 3]])
 
-function vali(str) {
-    const strs = str.split('')
-    let stack = []
-    let statusStack = []
-
+function isVali(s) {
+    const stack = []
+    const statusStack = []
+    let len = s.length
     let i = 0
-    while (i < strs.length) {
-        const val = strs[i]
-        if (['{', '[', '('].includes(val)) {
-            let lastSVal = statusStack.length > 0 ? statusStack[statusStack.length - 1] : 0
-            let curSVal = 1
-            if (val === '{') {
-                curSVal = 3
-            } else if (val === '[') {
-                curSVal = 2
+    while (i < len) {
+        const cur = s[i]
+        if (['{', '[', '('].includes(cur)) {
+            stack.push(cur)
+            const val = map.get(cur)
+            if (statusStack.length > 0) {
+                lastVal = statusStack[statusStack.length - 1]
+                if (val > lastVal) {
+                    return false
+                }
             }
-            if (lastSVal && curSVal > lastSVal) {
+            statusStack.push(val)
+
+        } else {
+            if (stack.length === 0) {
                 return false
             }
-            statusStack.push(curSVal)
-
-            stack.push(val)
-        } else {
-            let curVal = stack.pop()
-            curVal = curVal + val
-            if (!(['{}', '[]', '()'].includes(curVal))) {
+            const val = stack.pop()
+            if (!(['{}', '[]', '()'].includes(val + cur))) {
                 return false
             } else {
                 statusStack.pop()
@@ -36,13 +35,17 @@ function vali(str) {
 }
 
 console.log(
-    vali('(([{}))')
+    isVali('([{}])')
 )
 
 console.log(
-    vali('(({))')
+    isVali('(({))')
 )
 
 console.log(
-    vali('{(())}')
+    isVali('{(())}')
+)
+
+console.log(
+    isVali('{()[()]}')
 )
