@@ -22,12 +22,12 @@ var letterCombinations = function (digits) {
     Object.keys(map).forEach((key) => (map[key] = map[key].split('')))
 
     let result = []
-    let len = digits.length - 1
+    let len = digits.length
 
 
 
     function backtracking(stack, i) {
-        if (i > len) {
+        if (i === len) {
             result.push(stack.join(''))
             return
         }
@@ -36,12 +36,12 @@ var letterCombinations = function (digits) {
         const arr = map[val]
         arr.forEach((val) => {
             stack.push(val)
-            next(stack, i + 1)
+            backtracking(stack, i + 1)
             stack.pop()
         })
     }
 
-    next([], 0)
+    backtracking([], 0)
 
     return result
 }
