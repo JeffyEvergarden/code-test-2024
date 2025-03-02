@@ -15,10 +15,14 @@ async function async2() {
     return new Promise((resolve, reject) => {
         resolve();
         console.log('async2 promise');
+    }).then(() => {
+        console.log('async2 then promise');
     })
 }
 
+
 async1();
+
 
 new Promise(function (resolve) {
     console.log('promise1');
@@ -30,3 +34,15 @@ new Promise(function (resolve) {
 });
 
 console.log('script end');
+
+
+// script start  
+// async1 start  
+// async2 start  
+// async2 promise
+// promise1      
+// script end    
+// promise2      
+// promise3      
+// async1 end    
+// setTimeout  
