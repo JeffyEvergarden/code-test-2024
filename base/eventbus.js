@@ -1,15 +1,16 @@
-class Eventbus {
+class EventBus {
   constructor() {
     this.events = {}
   }
-
+   
   // 订阅事件
   subscribe(event, callback) {
     if (!this.events[event]) {
       this.events[event] = []
     }
     this.events[event].push(callback)
-    return () => this.unsubscribe(event, callback) // 返回取消订阅函数
+    // 返回取消订阅函数
+    return () => this.unsubscribe(event, callback)
   }
 
   // 发布事件
@@ -33,14 +34,13 @@ class Eventbus {
 }
 
 // 创建一个全局的事件总线实例
-const eventbus = new Eventbus()
+const eventBus = new EventBus()
 // 导出事件总线实例
-export default eventbus
-
+export default eventBus
 
 // 使用示例
-// import eventbus from './eventbus.js'
-// eventbus.subscribe('eventName', (data) => {
+// import eventBus from './eventBus.js'
+// eventBus.subscribe('eventName', (data) => {
 //   console.log('Event received:', data)
 // })
-// eventbus.publish('eventName', { key: 'value' })  
+// eventBus.publish('eventName', { key: 'value' })

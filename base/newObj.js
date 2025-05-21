@@ -16,6 +16,7 @@ function createAObj(...args) {
 
 
 function createAObj2(...args) {
+  // 创建一个新对象，继承A的原型
   let a = Object.create(A.prototype)
 
   let result = A.call(aa, ...args);

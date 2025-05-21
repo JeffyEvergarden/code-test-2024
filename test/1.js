@@ -1,10 +1,3 @@
-function fn() {
-  po = 1
+const { resolve } = require('node:path')
 
-  if (po) {
-    p1 = 2
-  }
-  console.log(p1)
-}
-
-fn()
+console.log(resolve('src/a.js'))
