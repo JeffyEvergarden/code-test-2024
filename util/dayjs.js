@@ -1,21 +1,18 @@
 const dayjs = require('dayjs')
+const timezone = require('dayjs/plugin/timezone')
+const utc = require('dayjs/plugin/utc')
 
-const endTime = dayjs(new Date()).add(1, 'day').startOf('day')
+dayjs.extend(timezone)
+dayjs.extend(utc)
 
-console.log('endTime:', endTime.format('YYYY-MM-DD HH:mm:ss'))
+dayjs.tz.setDefault('Asia/Tokyo')
 
-// 当前时间
-const now = new Date()
-// 剩余时间
-const remainingTime = endTime.valueOf() - now.getTime()
+const _now = dayjs.tz(new Date())
 
-const newTime = remainingTime + now.getTimezoneOffset() * 60000
+console.log('now:', _now.format('YYYY-MM-DD HH:mm:ss'))
 
-const time = new Date(newTime)
+const endoftoday = dayjs().startOf('day').add(1, 'day').toDate().getTime()
 
-console.log(now.toLocaleTimeString())
-console.log(time.toLocaleTimeString())
+const now = new Date('2026-01-16 00:00:00')
 
-console.log('hour:', time.getHours(), Math.floor(remainingTime / (1000 * 60 * 60)))
-console.log('minute:', time.getMinutes(), Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60)))
-console.log('second:', time.getSeconds(), Math.floor((remainingTime % (1000 * 60)) / 1000))
+console.log('今天的截止时间:', endoftoday, now.getTime())

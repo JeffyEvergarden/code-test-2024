@@ -1,0 +1,12 @@
+{
+  "name": "util-rcedit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "edit": "node edit-exe.js",
+    "example": "node use-rcedit.js"
+  },
+  "dependencies": {
+    "rcedit": "^5.0.2"
+  }
+}
