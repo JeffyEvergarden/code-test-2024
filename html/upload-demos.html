@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<!--
+  上传 Demo 页面：演示四种文件/文件夹选择与展示方式
+  - Demo 1：通过 <input type="file" multiple> 选择多个文件
+  - Demo 2：通过 <input type="file" webkitdirectory> 选择整个文件夹
+  - Demo 3：拖拽文件到指定区域（DataTransfer.files）
+  - Demo 4：拖拽文件夹到指定区域（DataTransferItem.webkitGetAsEntry 递归）
+  仅前端展示，不上传至服务器。依赖标准 File API、Drag and Drop API。
+-->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传 Demo：文件 / 文件夹 · 选择 / 拖拽</title>
+    <style>
+        /* ---------- 基础重置与页面容器 ---------- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        /* 主内容区：白底卡片，居中 */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        /* 页面标题与全局说明 */
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 24px;
+        }
+        .page-desc {
+            text-align: center;
+            color: #666;
+            margin-bottom: 28px;
+            font-size: 14px;
+        }
+        /* ---------- 每个 Demo 区块 ---------- */
+        section.demo {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #eee;
+        }
+        section.demo:last-of-type { border-bottom: none; }
+        section.demo h2 {
+            font-size: 18px;
+            color: #444;
+            margin-bottom: 6px;
+        }
+        section.demo .note {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 12px;
+        }
+        .trigger-row { margin-bottom: 12px; }
+        /* 按钮式 label 与拖放区共用：边框、浅紫底、hover 加深 */
+        label.btn-like,
+        .drop-zone {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 14px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            background: #f8f9ff;
+            color: #333;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        label.btn-like:hover,
+        .drop-zone:hover {
+            background: #eef0ff;
+            border-color: #5568d3;
+        }
+        /* 拖放区：大块可点击区域，居中提示文字 */
+        .drop-zone {
+            min-height: 100px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #666;
+        }
+        /* 拖拽悬停时的高亮状态（需在 JS 中给元素添加 .drag-over） */
+        .drop-zone.drag-over {
+            background: #e0e7ff;
+            border-color: #4338ca;
+            color: #333;
+        }
+        /* 结果列表容器：灰底、可滚动，统一展示「文件名 — 大小」 */
+        .result {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .result ul { list-style: none; }
+        .result li { padding: 4px 0; border-bottom: 1px solid #eee; }
+        .result li:last-child { border-bottom: none; }
+        .result .empty { color: #999; }
+        /* 浏览器不支持时的提示（如 webkitdirectory / webkitGetAsEntry） */
+        .support-warn { font-size: 12px; color: #b45309; margin-top: 6px; }
+        /* 隐藏原生 file input，仅通过 label 触发 */
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>上传 Demo</h1>
+        <p class="page-desc">仅演示选择/拖入与结果展示，不上传至服务器。</p>
+
+        <!-- Demo 1：通过 input[type=file][multiple] 选择多个文件 -->
+        <section class="demo" id="demo-file">
+            <h2>1. 上传文件</h2>
+            <p class="note">通过按钮选择单个或多个文件，仅展示文件名与大小。</p>
+            <div class="trigger-row">
+                <label for="input-file" class="btn-like">选择文件（可多选）</label>
+                <input type="file" id="input-file" multiple>
+            </div>
+            <div id="result-file" class="result">
+                <ul><li class="empty">尚未选择文件</li></ul>
+            </div>
+        </section>
+
+        <!-- Demo 2：通过 input[webkitdirectory] 选择整个文件夹（Chrome/Edge 支持） -->
+        <section class="demo" id="demo-folder">
+            <h2>2. 上传文件夹</h2>
+            <p class="note">选择整个文件夹，展示其内所有文件（含相对路径）。建议使用 Chrome/Edge 查看。</p>
+            <div class="trigger-row">
+                <label for="input-folder" class="btn-like">选择文件夹</label>
+                <input type="file" id="input-folder" webkitdirectory directory>
+            </div>
+            <p id="folder-support-warn" class="support-warn" style="display:none;">当前浏览器可能不支持选择文件夹，请使用 Chrome 或 Edge。</p>
+            <div id="result-folder" class="result">
+                <ul><li class="empty">尚未选择文件夹</li></ul>
+            </div>
+        </section>
+
+        <!-- Demo 3：拖放区接收文件，使用 DataTransfer.files -->
+        <section class="demo" id="demo-drag-file">
+            <h2>3. 拖动上传文件</h2>
+            <p class="note">将文件拖入下方区域，仅接受文件，展示文件名与大小。</p>
+            <div id="drop-file" class="drop-zone" tabindex="0">将文件拖到此处，或点击选择</div>
+            <div id="result-drag-file" class="result">
+                <ul><li class="empty">尚未拖入文件</li></ul>
+            </div>
+        </section>
+
+        <!-- Demo 4：拖放区接收文件夹，使用 webkitGetAsEntry 递归读目录 -->
+        <section class="demo" id="demo-drag-folder">
+            <h2>4. 拖动上传文件夹</h2>
+            <p class="note">将文件夹拖入下方区域，会递归展示其中所有文件。建议使用 Chrome/Edge。</p>
+            <div id="drop-folder" class="drop-zone" tabindex="0">将文件夹拖到此处</div>
+            <p id="folder-drag-support-warn" class="support-warn" style="display:none;">当前浏览器可能不支持拖拽文件夹递归，请使用 Chrome 或 Edge。</p>
+            <div id="result-drag-folder" class="result">
+                <ul><li class="empty">尚未拖入文件夹</li></ul>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        /**
+         * 上传 Demo 脚本（IIFE，避免污染全局）
+         * 依次实现：文件选择、文件夹选择、拖拽文件、拖拽文件夹（递归）四种展示逻辑。
+         */
+        (function () {
+            /**
+             * 将字节数格式化为可读字符串（B / KB / MB）
+             * @param {number} bytes - 文件大小（字节）
+             * @returns {string} 如 "1.25 MB"、"512 B"
+             */
+            function formatSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            }
+
+            /**
+             * 将文件信息列表渲染到指定容器的 <ul> 中
+             * @param {string} containerId - 结果区域元素 id（其内需有 ul）
+             * @param {Array<{name: string, path?: string, size: number}>} items - 每项含 name、可选 path、size
+             */
+            function renderFileList(containerId, items) {
+                var container = document.getElementById(containerId);
+                var ul = container.querySelector('ul');
+                ul.innerHTML = '';
+                if (!items.length) {
+                    ul.innerHTML = '<li class="empty">暂无</li>';
+                    return;
+                }
+                items.forEach(function (item) {
+                    var li = document.createElement('li');
+                    li.textContent = (item.path || item.name) + ' — ' + formatSize(item.size);
+                    ul.appendChild(li);
+                });
+            }
+
+            /** 阻止拖放默认行为（避免浏览器在新标签页打开文件） */
+            function prevent(e) { e.preventDefault(); e.stopPropagation(); }
+
+            // ========== Demo 1：选择多个文件 ==========
+            var inputFile = document.getElementById('input-file');
+            inputFile.addEventListener('change', function () {
+                var files = this.files;
+                var items = [];
+                for (var i = 0; i < files.length; i++) {
+                    items.push({ name: files[i].name, size: files[i].size });
+                }
+                renderFileList('result-file', items);
+            });
+
+            // ========== Demo 2：选择文件夹（webkitdirectory） ==========
+            var inputFolder = document.getElementById('input-folder');
+            var folderSupportWarn = document.getElementById('folder-support-warn');
+            if (!('webkitdirectory' in document.createElement('input'))) {
+                folderSupportWarn.style.display = 'block';
+            }
+            inputFolder.addEventListener('change', function () {
+                var files = this.files;
+                var items = [];
+                for (var i = 0; i < files.length; i++) {
+                    var f = files[i];
+                    items.push({ name: f.name, path: f.webkitRelativePath || f.name, size: f.size });
+                }
+                renderFileList('result-folder', items);
+            });
+
+            // ========== Demo 3：拖拽文件到区域 ==========
+            var dropFile = document.getElementById('drop-file');
+            dropFile.addEventListener('dragover', function (e) {
+                prevent(e);
+                e.dataTransfer.dropEffect = 'copy';
+                this.classList.add('drag-over');
+            });
+            dropFile.addEventListener('dragleave', function (e) {
+                prevent(e);
+                this.classList.remove('drag-over');
+            });
+            dropFile.addEventListener('drop', function (e) {
+                prevent(e);
+                this.classList.remove('drag-over');
+                var files = e.dataTransfer.files;
+                var items = [];
+                for (var i = 0; i < files.length; i++) {
+                    items.push({ name: files[i].name, size: files[i].size });
+                }
+                renderFileList('result-drag-file', items);
+            });
+
+            // ========== 4. 拖动上传文件夹（递归） ==========
+            // 本段实现：用户将「文件或整个文件夹」拖入指定区域时，递归遍历文件夹内所有文件，
+            // 收集每个文件的 name、相对路径 path、size，最后在页面上展示列表。
+
+            var dropFolder = document.getElementById('drop-folder');       // 拖放目标 DOM 元素
+            var folderDragWarn = document.getElementById('folder-drag-support-warn');  // 浏览器不支持文件夹时的提示
+
+            /**
+             * 递归读取目录：根据 FileSystemEntry 类型（文件/目录）分别处理，将结果写入 out 数组
+             * @param {FileSystemEntry} entry - 文件或目录的入口（来自 DataTransferItem.webkitGetAsEntry()）
+             * @param {string} path - 当前相对路径前缀（用于拼出如 "src/utils/foo.js"）
+             * @param {Array} out - 输出数组，每项为 { name, path, size } 
+             * @returns {Promise} 读完当前 entry 后 resolve
+             */
+            function readDir(entry, path, out) {
+                path = path || '';
+                // 当前项是文件：转成 File 对象，取出 name/size，带上 path 推入 out
+                if (entry.isFile) {
+                    return new Promise(function (resolve) {
+                        // 通过 entry.file() 获取文件对象，返回 promise
+                        entry.file(function (file) {
+                            out.push({ name: file.name, path: path + file.name, size: file.size });
+                            resolve();
+                        });
+                    });
+                }
+                // 当前项是目录：创建 DirectoryReader，读取子项，对每个子项递归 readDir，保持顺序
+                if (entry.isDirectory) {
+                    // 创建文件夹阅读器
+                    var dirReader = entry.createReader();
+                    return new Promise(function (resolve) {
+                        dirReader.readEntries(function (entries) {
+                            // 用 Promise 链按顺序处理每个子项，避免并发导致顺序错乱
+                            var chain = Promise.resolve();
+                            entries.forEach(function (e) {
+                                chain = chain.then(function () {
+                                    return readDir(e, path + entry.name + '/', out);
+                                });
+                            });
+                            chain.then(resolve);
+                        });
+                    });
+                }
+                return Promise.resolve();
+            }
+
+            // 拖拽经过目标区域时：阻止默认行为、显示「复制」光标、添加视觉高亮
+            dropFolder.addEventListener('dragover', function (e) {
+                prevent(e);
+                e.dataTransfer.dropEffect = 'copy';
+                this.classList.add('drag-over');
+            });
+            // 拖拽离开目标区域时：移除高亮
+            dropFolder.addEventListener('dragleave', function (e) {
+                prevent(e);
+                this.classList.remove('drag-over');
+            });
+
+            // 在目标区域松开鼠标（完成拖放）：解析拖入项，支持「多个文件 + 多个文件夹」混合，文件夹会递归展开
+            dropFolder.addEventListener('drop', function (e) {
+                prevent(e);
+                this.classList.remove('drag-over');
+
+                // dataTransfer：拖放事件携带的数据，包含 files、items 等
+                var dt = e.dataTransfer;
+                // items：DataTransferItem 列表，每一项对应一个被拖入的「文件或文件夹」（可区分类型）
+                var items = dt.items;
+
+                if (!items || !items.length) {
+                    renderFileList('result-drag-folder', []);
+                    return;
+                }
+                var all = [];  // 收集所有文件信息 { name, path, size }，供 renderFileList 展示
+
+                /** 全部 items 处理完后，把结果渲染到 id="result-drag-folder" 的列表中 */
+                function done() {
+                    renderFileList('result-drag-folder', all);
+                }
+
+                /**
+                 * 按索引逐个处理 items（串行），因为 readDir 是异步的，所以用「处理完当前再处理下一个」的方式
+                 * @param {number} index - 当前要处理的 items 下标
+                 */
+                function tryNext(index) {
+                    if (index >= items.length) return done();
+                    var item = items[index];
+
+                    // ---------- 为何同时有 webkitGetAsEntry 和 getAsFile？----------
+                    // getAsFile()：只能得到「一个 File 对象」。拖进来的是文件时没问题；
+                    //   拖进来的是「文件夹」时，有的浏览器会给你一个 0 字节的假 File，无法知道里面有哪些子文件。
+                    // webkitGetAsEntry()（标准名 getAsEntry()）：得到「FileSystemEntry」。
+                    //   - 是文件：entry.isFile === true，可 entry.file() 转成 File；
+                    //   - 是文件夹：entry.isDirectory === true，可 createReader().readEntries() 递归读子项。
+                    // 所以：有 Entry 就用 Entry（能认文件夹、能递归）；没有就退化成 getAsFile()（只能当扁平文件列表）。
+                    if (item.webkitGetAsEntry) {
+                        var entry = item.webkitGetAsEntry();
+                        if (entry) {
+                            readDir(entry, '', all).then(function () { tryNext(index + 1); });
+                            return;
+                        }
+                    }
+
+                    // 降级：没有 Entry API，只能把当前项当「单个文件」取 File，无法识别文件夹
+                    var f = item.getAsFile ? item.getAsFile() : (dt.files && dt.files[index]);
+                    if (f) all.push({ name: f.name, path: f.name, size: f.size });
+                    tryNext(index + 1);
+                }
+
+                // 若第一个 item 就不支持 webkitGetAsEntry，说明浏览器无法识别文件夹，显示提示
+                if (items[0] && !items[0].webkitGetAsEntry) {
+                    folderDragWarn.style.display = 'block';
+                }
+                tryNext(0);
+            });
+        })();
+    </script>
+</body>
+</html>
